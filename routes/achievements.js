@@ -36,11 +36,12 @@ route.get("/gamestats", (req, res) => {
     })
 })
 
+// Namerno ne prikazujemo igre koje nemaju vlasnike
 route.get("/most-owned-games", (req, res) => {
-    pool.query(`SELECT game_id, games_game.name, COUNT(games_game.id) as own_count FROM players_playeruser_games
+    pool.query(`SELECT game_id as id, games_game.name, COUNT(players_playeruser_games.playeruser_id) as own_count FROM players_playeruser_games
         INNER JOIN games_game ON (games_game.id = players_playeruser_games.game_id)
         GROUP BY game_id
-        ORDER BY COUNT(games_game.id) DESC`, (err, rows) => {
+        ORDER BY COUNT(players_playeruser_games.playeruser_id) DESC`, (err, rows) => {
             res.send(makeSuccessResponse(rows))
         })
 })
@@ -54,8 +55,27 @@ route.get("/hardest-achievements", (req, res) => {
     })
 })
 
-route.get("", (req, res) => {
-    
+route.get("/least-owned-games", (req, res) => {
+    var limit = 5;
+    if(req.query.limit) {
+        // Validiramo limit
+        // mora biti broj
+        var queryLimit = parseInt(req.query.limit);
+        // Poslat besmislen parametar - vrati gresku
+        if(isNaN(queryLimit)) {
+            res.send(makeErrorResponse('limit must be a valid integer number'));
+            return;
+        }
+        limit = queryLimit;
+    }
+
+    pool.query(`SELECT games_game.id, games_game.name, COUNT(players_playeruser_games.playeruser_id) as own_count FROM games_game
+        LEFT JOIN players_playeruser_games ON (games_game.id = players_playeruser_games.game_id)
+        GROUP BY games_game.id
+        ORDER BY COUNT(players_playeruser_games.playeruser_id) ASC
+        LIMIT `+limit, (err, rows) => {
+            res.send(makeSuccessResponse(rows))
+        })
 })
 
 module.exports = route;
