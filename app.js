@@ -21,4 +21,6 @@ app.use(staticMiddleware);
 app.use(history());
 app.use(staticMiddleware);
 
-app.listen(8081);
+app.listen(8081, 'localhost', () => {
+    console.log("Server running on: 8081")
+});

@@ -46,12 +46,16 @@ route.get("/most-owned-games", (req, res) => {
 })
 
 route.get("/hardest-achievements", (req, res) => {
-    pool.query(`SELECT skript2_aleksasmi.games_achievement.id, skript2_aleksasmi.games_achievement.name, skript2_aleksasmi.games_achievement.game_id, COUNT(skript2_aleksasmi.games_achievement.id) as obtained_count FROM skript2_aleksasmi.games_achievement
-    LEFT JOIN players_playeruser_achievements ON ( games_achievement.id = players_playeruser_achievements.achievement_id)
+    pool.query(`SELECT skript2_aleksasmi.games_achievement.id, skript2_aleksasmi.games_achievement.name, skript2_aleksasmi.games_achievement.game_id, COUNT(players_achiobtained.achievement_id) as obtained_count FROM skript2_aleksasmi.games_achievement
+    LEFT JOIN players_achiobtained ON ( games_achievement.id = players_achiobtained.achievement_id)
     GROUP BY skript2_aleksasmi.games_achievement.id
-    ORDER BY COUNT(skript2_aleksasmi.games_achievement.id) ASC`, (err, rows) => {
+    ORDER BY COUNT(players_achiobtained.achievement_id) ASC`, (err, rows) => {
         res.send(makeSuccessResponse(rows))
     })
+})
+
+route.get("", (req, res) => {
+    
 })
 
 module.exports = route;
