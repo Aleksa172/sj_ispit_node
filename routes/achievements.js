@@ -78,4 +78,49 @@ route.get("/least-owned-games", (req, res) => {
         })
 })
 
+route.get("/most-popular-dates-achievements", (req, res) => {
+    // Ako nema argumenata - uzmi trenutni mesec i godinu
+    var now = new Date();
+    var selectedMonth = now.getMonth()+1
+    var selectedYear = now.getFullYear();
+
+    // Ako imamo podatke - moramo ih validirati
+    // Uzecemo u obzir samo ako su oba stigla
+    if(req.query.month && req.query.year) {
+        // Validiramo selectedMonth
+        // mora biti broj
+        var querySelectedMonth = parseInt(req.query.month);
+        // Poslat besmislen parametar - vrati gresku
+        if(isNaN(querySelectedMonth) || querySelectedMonth<1 || querySelectedMonth>12) {
+            res.send(makeErrorResponse('month must be a valid month'));
+            return;
+        }
+        selectedMonth = querySelectedMonth;
+
+        var querySelectedYear = parseInt(req.query.year);
+        // Poslat besmislen parametar - vrati gresku
+        if(isNaN(querySelectedYear)) {
+            res.send(makeErrorResponse('yeat must be a valid year'));
+            return;
+        }
+        selectedYear = querySelectedYear;
+
+        
+    }
+    
+
+    var endMonth = selectedMonth+1;
+    var endYear  = selectedYear
+    if(endMonth>12) {
+        endMonth=1
+        endYear++;
+    }
+
+    pool.query(`SELECT DATE(dateachieved) as date, COUNT(id) as achievements_obtained FROM skript2_aleksasmi.players_achiobtained
+        WHERE dateachieved>'${selectedYear}-${selectedMonth}-01' AND dateachieved<'${endYear}-${endMonth}-01'
+        GROUP BY DATE(dateachieved)`, (err, rows) => {
+            res.send(makeSuccessResponse(rows))
+        })
+})
+
 module.exports = route;
