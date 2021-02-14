@@ -64,7 +64,7 @@ route.get("/hardest-achievements", (req, res) => {
     LEFT JOIN players_achiobtained ON ( games_achievement.id = players_achiobtained.achievement_id)
     INNER JOIN games_game ON ( games_game.id = games_achievement.game_id )
     GROUP BY skript2_aleksasmi.games_achievement.id
-    ORDER BY COUNT(players_achiobtained.achievement_id) ASC
+    ORDER BY COUNT(players_achiobtained.achievement_id) ASC, skript2_aleksasmi.games_achievement.id DESC
     LIMIT `+limit, (err, rows) => {
         res.send(makeSuccessResponse(rows))
     })
