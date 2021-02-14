@@ -150,4 +150,15 @@ route.get("/players-with-most-games", (req, res) => {
     })
 })
 
+route.get("/players-with-most-achievements", (req, res) => {
+    pool.query(`SELECT  auth_user.id, auth_user.username, COUNT(players_achiobtained.achievement_id) as achievement_count FROM auth_user
+    INNER JOIN players_playeruser ON (auth_user.id = players_playeruser.id)
+    LEFT JOIN skript2_aleksasmi.players_achiobtained ON (players_achiobtained.playeruser_id = players_playeruser.id)
+    GROUP BY auth_user.id
+    ORDER BY  COUNT(players_achiobtained.achievement_id) DESC
+    LIMIT 5`, (err, rows) => {
+        res.send(makeSuccessResponse(rows))
+    })
+})
+
 module.exports = route;
