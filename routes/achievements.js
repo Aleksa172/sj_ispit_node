@@ -47,10 +47,25 @@ route.get("/most-owned-games", (req, res) => {
 })
 
 route.get("/hardest-achievements", (req, res) => {
-    pool.query(`SELECT skript2_aleksasmi.games_achievement.id, skript2_aleksasmi.games_achievement.name, skript2_aleksasmi.games_achievement.game_id, COUNT(players_achiobtained.achievement_id) as obtained_count FROM skript2_aleksasmi.games_achievement
+    var limit = 5;
+    if(req.query.limit) {
+        // Validiramo limit
+        // mora biti broj
+        var queryLimit = parseInt(req.query.limit);
+        // Poslat besmislen parametar - vrati gresku
+        if(isNaN(queryLimit)) {
+            res.send(makeErrorResponse('limit must be a valid integer number'));
+            return;
+        }
+        limit = queryLimit;
+    }
+
+    pool.query(`SELECT skript2_aleksasmi.games_achievement.id, skript2_aleksasmi.games_achievement.name, skript2_aleksasmi.games_achievement.game_id, games_game.name as game_name, COUNT(players_achiobtained.achievement_id) as obtained_count FROM skript2_aleksasmi.games_achievement
     LEFT JOIN players_achiobtained ON ( games_achievement.id = players_achiobtained.achievement_id)
+    INNER JOIN games_game ON ( games_game.id = games_achievement.game_id )
     GROUP BY skript2_aleksasmi.games_achievement.id
-    ORDER BY COUNT(players_achiobtained.achievement_id) ASC`, (err, rows) => {
+    ORDER BY COUNT(players_achiobtained.achievement_id) ASC
+    LIMIT `+limit, (err, rows) => {
         res.send(makeSuccessResponse(rows))
     })
 })
@@ -121,6 +136,18 @@ route.get("/most-popular-dates-achievements", (req, res) => {
         GROUP BY DATE(dateachieved)`, (err, rows) => {
             res.send(makeSuccessResponse(rows))
         })
+})
+
+route.get("/players-with-most-games", (req, res) => {
+
+    pool.query(`SELECT auth_user.id, auth_user.username, COUNT(players_playeruser_games.game_id) as owned_games FROM auth_user
+    INNER JOIN players_playeruser ON (auth_user.id = players_playeruser.id)
+    INNER JOIN skript2_aleksasmi.players_playeruser_games ON (players_playeruser_games.playeruser_id = players_playeruser.id)
+    GROUP BY auth_user.id
+    ORDER BY COUNT(players_playeruser_games.game_id) DESC
+    LIMIT 5`, (err, rows) => {
+        res.send(makeSuccessResponse(rows))
+    })
 })
 
 module.exports = route;
